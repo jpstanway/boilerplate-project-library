@@ -59,14 +59,26 @@ module.exports = function (app) {
   app.route('/api/books/:id')
     .get(function (req, res){
       var bookid = req.params.id;
+
+      // make sure id is in proper format
+      if (bookid.length < 24) {
+        res.json('no book exists');
+      }
+
       //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
       MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
         if (err) res.send('Failed to connect to database');
 
         db.collection('library').findOne({_id: ObjectId(bookid)}, (err, data) => {
-          if (err) res.send('Failed to find book in database');
+          
+          if (err) {
+            res.json('Error finding book');
+          } else if (data) {
+            res.json(data);
+          } else {
+            res.json('no book exists');
+          }
 
-          res.json(data);
           db.close();
         });
       });
