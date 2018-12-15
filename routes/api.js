@@ -75,7 +75,23 @@ module.exports = function (app) {
     .post(function(req, res){
       var bookid = req.params.id;
       var comment = req.body.comment;
+
       //json res format same as .get
+      MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
+        if (err) res.send('Failed to connect to database');
+
+        db.collection('library').findAndModify(
+          { _id: ObjectId(bookid) },
+          {},
+          { $push: { commentcount: comment }}, 
+          { new: true },
+          (err, data) => {
+            if (err) res.send('Failed to insert comment');
+
+            res.json(data.value);
+            db.close();
+        });
+      });
     })
     
     .delete(function(req, res){
