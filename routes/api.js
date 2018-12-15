@@ -97,6 +97,16 @@ module.exports = function (app) {
     .delete(function(req, res){
       var bookid = req.params.id;
       //if successful response will be 'delete successful'
+      MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
+        if (err) res.send('Failed to connect to database');
+
+        db.collection('library').findOneAndDelete({_id: ObjectId(bookid)}, (err, data) => {
+          if (err) res.send('Failed to delete from database');
+
+          res.json('delete successful');
+          db.close();
+        });
+      });
     });
   
 };
