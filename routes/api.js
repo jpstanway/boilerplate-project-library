@@ -20,6 +20,14 @@ module.exports = function (app) {
     .get(function (req, res){
       //response will be array of book objects
       //json res format: [{"_id": bookid, "title": book_title, "commentcount": num_of_comments },...]
+      MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
+        if (err) res.send('Failed to connect to database');
+
+        db.collection('library').find().toArray().then((data) => {
+          res.json(data);
+          db.close();
+        });
+      });
     })
     
     .post(function (req, res){
@@ -29,7 +37,11 @@ module.exports = function (app) {
       MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
         if (err) res.send('Failed to connect to database');
 
-        db.collection('library').insert({title: title}, (err, data) => {
+        db.collection('library').insert({
+          _id: ObjectId(),
+          title: title,
+          commentcount: []
+        }, (err, data) => {
           if (err) res.send('Failed to add to database');
 
           res.json(data.ops);
