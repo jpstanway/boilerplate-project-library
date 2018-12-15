@@ -24,7 +24,18 @@ module.exports = function (app) {
     
     .post(function (req, res){
       var title = req.body.title;
+
       //response will contain new book object including atleast _id and title
+      MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
+        if (err) res.send('Failed to connect to database');
+
+        db.collection('library').insert({title: title}, (err, data) => {
+          if (err) res.send('Failed to add to database');
+
+          res.json(data.ops);
+          db.close();
+        });
+      });
     })
     
     .delete(function(req, res){
