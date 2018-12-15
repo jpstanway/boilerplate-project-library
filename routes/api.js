@@ -60,6 +60,16 @@ module.exports = function (app) {
     .get(function (req, res){
       var bookid = req.params.id;
       //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
+      MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
+        if (err) res.send('Failed to connect to database');
+
+        db.collection('library').findOne({_id: ObjectId(bookid)}, (err, data) => {
+          if (err) res.send('Failed to find book in database');
+
+          res.json(data);
+          db.close();
+        });
+      });
     })
     
     .post(function(req, res){
