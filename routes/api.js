@@ -31,23 +31,32 @@ module.exports = function (app) {
     })
     
     .post(function (req, res){
+      expect(req.body).to.be.an('object');
+      
       var title = req.body.title;
 
-      //response will contain new book object including atleast _id and title
-      MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
-        if (err) res.send('Failed to connect to database');
+      if (!title) {
+        // send error message if no title given
+        res.json('no title given');
+      } else {
+        //response will contain new book object including atleast _id and title
+        MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
+          if (err) res.send('Failed to connect to database');
 
-        db.collection('library').insert({
-          _id: ObjectId(),
-          title: title,
-          commentcount: []
-        }, (err, data) => {
-          if (err) res.send('Failed to add to database');
+          // if no book exists insert new one
+          db.collection('library').insert({
+            _id: ObjectId(),
+            title: title,
+            commentcount: []
+          }, (err, data) => {
+            if (err) res.send('Failed to add to database');
 
-          res.json(data.ops);
-          db.close();
+            res.json(data.ops);
+            db.close();
+          });
+
         });
-      });
+      }
     })
     
     .delete(function(req, res){
