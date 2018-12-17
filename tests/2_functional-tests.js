@@ -45,6 +45,7 @@ suite('Functional Tests', function() {
           .post('/api/books')
           .send({title: 'sample book'})
           .end((err, res) => {
+            console.log(res.body);
             assert.equal(res.status, 200);
             assert.isArray(res.body, 'response should be an array');
             assert.property(res.body[0], '_id', 'Book object should contain id');
@@ -72,7 +73,13 @@ suite('Functional Tests', function() {
     suite('GET /api/books => array of books', function(){
       
       test('Test GET /api/books',  function(done){
-        //done();
+        chai.request(server)
+          .get('/api/books')
+          .end((err, res) => {
+            assert.equal(res.status, 200);
+            assert.isArray(res.body);
+            done();
+          });
       });      
       
     });
@@ -81,11 +88,25 @@ suite('Functional Tests', function() {
     suite('GET /api/books/[id] => book object with [id]', function(){
       
       test('Test GET /api/books/[id] with id not in db',  function(done){
-        //done();
+        chai.request(server)
+          .get('/api/books/asd123asd123asd123asd123')
+          .end((err, res) => {
+            assert.equal(res.status, 200);
+            assert.isString(res.body);
+            assert.equal(res.body, 'no book exists');
+            done();
+          });
       });
       
       test('Test GET /api/books/[id] with valid id in db',  function(done){
-        //done();
+        chai.request(server)
+          .get('/api/books/5c16f23533b8cb0404ae6a19')
+          .end((err, res) => {
+            assert.equal(res.status, 200);
+            assert.isObject(res.body);
+            assert.equal(res.body._id, '5c16f23533b8cb0404ae6a19')
+            done();
+          });
       });
       
     });

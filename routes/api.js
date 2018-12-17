@@ -43,18 +43,27 @@ module.exports = function (app) {
         MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
           if (err) res.send('Failed to connect to database');
 
-          // if no book exists insert new one
-          db.collection('library').insert({
-            _id: ObjectId(),
-            title: title,
-            commentcount: []
-          }, (err, data) => {
-            if (err) res.send('Failed to add to database');
+          db.collection('library').findOne({title: title}, (err, data) => {
 
-            res.json(data.ops);
-            db.close();
+            if (err) {
+              res.send('Failed to search database for similar book');
+            } else if (data) {
+              res.json([data]);
+            } else {
+               // if no book exists insert new one
+              db.collection('library').insert({
+                _id: ObjectId(),
+                title: title,
+                commentcount: []
+              }, (err, data) => {
+                if (err) res.send('Failed to add to database');
+
+                res.json(data.ops);
+                db.close();
+              });
+            }
+            
           });
-
         });
       }
     })
@@ -73,34 +82,39 @@ module.exports = function (app) {
       });
     });
 
-
+  // check :id is a hexadecimal
+  function hexTest(str) {
+    const hex = /[0-9A-Fa-f]{6}/g;
+    return hex.test(str);
+  }
 
   app.route('/api/books/:id')
     .get(function (req, res){
       var bookid = req.params.id;
 
       // make sure id is in proper format
-      if (bookid.length < 24) {
+      if (bookid.length < 24 || !hexTest(bookid)) {
         res.json('no book exists');
+      } else {
+        //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
+        MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
+          if (err) res.send('Failed to connect to database');
+
+          db.collection('library').findOne({_id: ObjectId(bookid)}, (err, data) => {
+            
+            if (err) {
+              res.json('Error finding book');
+            } else if (data) {
+              res.json(data);
+            } else {
+              res.json('no book exists');
+            }
+
+            db.close();
+          });
+        });
       }
 
-      //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
-      MongoClient.connect(MONGODB_CONNECTION_STRING, (err, db) => {
-        if (err) res.send('Failed to connect to database');
-
-        db.collection('library').findOne({_id: ObjectId(bookid)}, (err, data) => {
-          
-          if (err) {
-            res.json('Error finding book');
-          } else if (data) {
-            res.json(data);
-          } else {
-            res.json('no book exists');
-          }
-
-          db.close();
-        });
-      });
     })
     
     .post(function(req, res){
