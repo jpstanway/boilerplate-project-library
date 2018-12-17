@@ -118,6 +118,9 @@ module.exports = function (app) {
     })
     
     .post(function(req, res){
+      expect(req.params).to.be.an('object');
+      expect(req.body).to.be.an('object');
+
       var bookid = req.params.id;
       var comment = req.body.comment;
 
@@ -128,7 +131,7 @@ module.exports = function (app) {
         db.collection('library').findAndModify(
           { _id: ObjectId(bookid) },
           {},
-          { $push: { commentcount: comment }}, 
+          { $addToSet: { commentcount: comment }}, 
           { new: true },
           (err, data) => {
             if (err) res.send('Failed to insert comment');

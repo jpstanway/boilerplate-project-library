@@ -45,12 +45,11 @@ suite('Functional Tests', function() {
           .post('/api/books')
           .send({title: 'sample book'})
           .end((err, res) => {
-            console.log(res.body);
             assert.equal(res.status, 200);
             assert.isArray(res.body, 'response should be an array');
             assert.property(res.body[0], '_id', 'Book object should contain id');
             assert.property(res.body[0], 'title', 'Book object should contain title');
-            assert.property(res.body[0], 'commentcount', 'Book object should contain empty comment array');
+            assert.property(res.body[0], 'commentcount', 'Book object should contain comment array');
             assert.equal(res.body[0].title, 'sample book');
             done();
           });
@@ -100,11 +99,11 @@ suite('Functional Tests', function() {
       
       test('Test GET /api/books/[id] with valid id in db',  function(done){
         chai.request(server)
-          .get('/api/books/5c16f23533b8cb0404ae6a19')
+          .get('/api/books/5c16f60a1d8b2000fc5dbf5b')
           .end((err, res) => {
             assert.equal(res.status, 200);
             assert.isObject(res.body);
-            assert.equal(res.body._id, '5c16f23533b8cb0404ae6a19')
+            assert.equal(res.body._id, '5c16f60a1d8b2000fc5dbf5b')
             done();
           });
       });
@@ -115,7 +114,15 @@ suite('Functional Tests', function() {
     suite('POST /api/books/[id] => add comment/expect book object with id', function(){
       
       test('Test POST /api/books/[id] with comment', function(done){
-        //done();
+        chai.request(server)
+          .post('/api/books/5c16f60a1d8b2000fc5dbf5b')
+          .send({comment: 'test comment'})
+          .end((err, res) => {
+            assert.equal(res.status, 200);
+            assert.isObject(res.body);
+            assert.include(res.body.commentcount, 'test comment', 'array contains comment');
+            done();
+          });
       });
       
     });
